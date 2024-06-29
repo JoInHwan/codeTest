@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gd.experiment.mapper.CommuteMapper">
+
+	<insert id="commuteInTime" parameterType="String">
+		INSERT INTO commute (member_id,in_time)
+		VALUES( #{id}, NOW() )		
+	</insert>
+	
+	<update id="commuteOutTime" parameterType="String">
+		UPDATE 
+			commute
+		SET 
+			out_time = NOW()	
+		WHERE 
+			member_id = #{id} AND
+			in_time IS NOT NULL		
+	</update>
+	
+	
+	<select id="selectMyCommuteHistory" parameterType="String" resultType="com.gd.experiment.dto.CommuteDto">
+		SELECT
+			commute_num commuteNum,
+			member_id memberId,
+			in_time inTime,
+			out_time outTime
+		FROM 
+			commute
+		WHERE
+			member_id = #{id}
+	</select>
+
+
+	<select id="checkCommute" parameterType="String" resultType="com.gd.experiment.dto.CommuteDto">
+		SELECT 
+			commute_num commuteNum,
+			member_id memberId,
+			TIME(in_time) inTime,
+			TIME(out_time) outTime
+		FROM 
+			commute
+		WHERE
+			member_id = #{id} AND
+			DATE(in_time) = CURDATE()
+		ORDER BY 
+			in_time DESC
+	</select>
+	
+
+</mapper>
