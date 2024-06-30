@@ -18,14 +18,14 @@
 <c:set var="loginInfo" value="${sessionScope.loginInfo}"/>
 </head>
 <body class="container">
-<h1>받은 쪽지함</h1>
-	<a href="/test/logout">로그아웃</a>	
+<h1>보낸 쪽지함</h1>
+	<a href="/test/logout">로그아웃</a>		
 	<a href="/test/main" class="btn btn-warning btn-sm">메인</a>	
-	<a href="#" class="btn btn-success btn-sm" id="writeMessageBtn">쪽지쓰기</a>
+	<a href="#" class="btn btn-primary btn-sm" id="writeMessageBtn">쪽지쓰기</a>
 	<table class="table tabled">
 		<tr>
 			<td>체크</td>
-			<td>보낸이</td>
+			<td>받는이</td>
 			<td>제목</td>
 			<td>내용</td>
 			<td>보낸날짜</td>
@@ -35,7 +35,7 @@
 		<c:forEach var="m" items="${list}">
 			<tr>
 				<td><input type="checkbox" name="msgNum" value="${m.msgNum}"></td>
-				<td>${m.sender}</td>
+				<td>${m.receiver}</td>
 				<td>${m.title}</td>
 				<td>${m.content}</td>
 				<td>${m.sendTime}</td>
@@ -78,10 +78,9 @@
 			</div>
 		</div>
 	</div>
-		
-	<a href="/test/msgList/1" class="btn btn-info btn-sm">보낸쪽지함</a>	
+	<a href="/test/msgList/0" class="btn btn-success btn-sm">받은쪽지함</a>		
 	<a href="/test/msgList/2" class="btn btn-dark btn-sm">휴지통</a>	
-	<button type="button" id="deleteButton" class="btn btn-danger btn-sm">삭제하기</button>
+	<button type="button" id="deleteButton">삭제하기</button>
 	<script>
 		$(document).ready(function(){
 		    // "쪽지쓰기" 버튼 클릭 시 모달 표시
@@ -110,7 +109,7 @@
 		        });
 		    });
 	
-		    // "삭제하기" 버튼 클릭 시 선택된 항목 삭제
+		 // "삭제하기" 버튼 클릭 시 선택된 항목 삭제
 		    $('#deleteButton').click(function(){
 		        let checkedItems = $('input[name="msgNum"]:checked');
 		        let count = checkedItems.length;
@@ -128,7 +127,7 @@
 		                    data: { 
 		                        msgNums: ids,
 		                        loginId: loginId,
-		                        request: 1		                        
+		                        request: 2		                        
 		                    },
 		                    success: function(result){
 		                    	if(result == 0) {
