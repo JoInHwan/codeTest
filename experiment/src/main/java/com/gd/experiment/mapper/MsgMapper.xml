@@ -1,9 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.gd.experiment.mapper.MsgMapper">
+	<!-- 받은쪽지수 -->
+	<select id="msgReceive" parameterType="String" resultType="int">
+		SELECT COUNT(*)
+		FROM (
+			SELECT
+				msg_num
+			FROM 
+				msg
+			WHERE
+				receiver = #{id} AND
+				receive_del = 'N'AND
+				read_time IS NULL
+				) a								
+	</select>
 	
 	<!-- 쪽지 리스트  -->
-	<select id="selectMsgList" parameterType="String" resultType="com.gd.experiment.dto.MsgDto">
+	<select id="selectMsgList" parameterType="map" resultType="com.gd.experiment.dto.MsgDto">
 		SELECT
 			msg_num msgNum,
 			sender,
@@ -11,49 +25,81 @@
 			title,
 			content,
 			send_time sendTime,
-			read_time readTime,
-			send_del sendDel,
+			read_time readTime,			
+			send_del sendDel,			
 			receive_del receiveDel
 		FROM 
 			msg
 		WHERE
-			sender = #{id} OR
-			receiver = #{id}
+			1=1 
+		<choose>
+	        <when test="request == 0">  <!-- 0번요청: 받은거 삭제 x -->
+	        	AND receiver = #{id} 
+	            AND receive_del = 'N'
+	        </when>	        
+	       <when test="request == 1 ">  <!--1번요청: 보핸거 삭제 x -->
+	        	AND sender = #{id} 
+	            AND send_del = 'N'
+	        </when>
+	        <when test="request == 2 ">	<!--2번요청: 휴지통 -->
+		        AND (
+		        	sender = #{id} 
+		            AND send_del = 'Y'
+		    	OR
+		    		receiver = #{id}
+		    		AND receive_del = 'Y'
+		    		)
+	        </when>
+	    </choose>
 		ORDER BY
 			send_time DESC					
 	</select>
-
-	<!-- 받은쪽지수 -->
-	<select id="msgReceive" parameterType="String" resultType="int">
-		SELECT COUNT(*)
-		FROM (
-			SELECT
-				msg_num msgNum
-			FROM 
-				msg
-			WHERE
-				receiver = #{id} AND
-				receive_del = 'N') a								
-	</select>
-
-<!-- 	 쪽지 읽기처리 (미완)-->
-	<update id="updateMsgToRead" parameterType="String">
-		UPDATE msg
-		SET
-			confirm = "Y"
-		WHERE 
-			receiver = #{id} AND
-			stare = '수신' AND
-			confirm = 'N'
-	</update>
-	
 	
 	<!-- 쪽지쓰기 -->
 	<insert id="insertMsg" parameterType="Map">
-		Insert INTO
+		INSERT INTO
 				msg(sender,receiver,title,content)
 		VALUES (#{sender},#{receiver},#{title},#{content})		
 	</insert>
+	
+<!-- 	쪽지 삭제 -->
+	<update id="updateMsgState" parameterType="map">
+		UPDATE msg	
+			<if test="request == 0"> 
+				SET 	read_time = NOW()
+				WHERE 	receiver = #{id}
+			</if>	
+			<if test="request == 1"> 
+				SET 	receive_del = 'Y'
+				WHERE 	receiver = #{id}
+			</if>
+			<if test="request == 2">
+				SET 	send_del = 'Y'
+				WHERE 	sender = #{id} 					
+			</if>
+			<if test="request == 3">
+				SET 	receive_del = 'D'
+				WHERE 	receiver = #{id}
+			</if>
+			<if test="request == 4">
+				SET 	send_del = 'D'
+				WHERE 	sender = #{id} 
+			</if>
+		AND	msg_num = #{msgNum}
+	</update>
+	
+	
+
+<!-- 	최종삭제 -->
+	<delete id="deleteMsgBySchedule">
+		DELETE 
+		FROM 
+			msg
+		WHERE 
+			send_del = 'D' AND
+			receive_del = 'D'	
+	</delete>
+
 
 
 </mapper>

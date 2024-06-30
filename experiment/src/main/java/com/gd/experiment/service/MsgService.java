@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.gd.experiment.dto.MsgDto;
@@ -21,17 +22,35 @@ public class MsgService {
 	
 	@Autowired MsgMapper msgMapper;
 	
-	// 쪽지리스트
-	public List<MsgDto> getMsgList(String id){
-		
-		return msgMapper.selectMsgList(id);
-	}
-	
 	// 안읽은 쪽지수
-	public int msgReceive(String id){
-		log.debug(RED + "id: " + id + " 행수 : "+ msgMapper.msgReceive(id) + RESET );
-		return msgMapper.msgReceive(id);
+		public int msgReceive(String id){
+			log.debug(RED + "id: " + id + " 행수 : "+ msgMapper.msgReceive(id) + RESET );
+			return msgMapper.msgReceive(id);
+		}
+	
+
+		// MsgDto msgDto = new MsgDto();
+		// List<MsgDto>s = s.;
+		
+//		for(MsgDto m : msgMapper.selectReceiveMsgList(id)) {
+//			log.debug(RED + "확인: " + m + RESET );			
+//			if(m.getSendDel().equals("N") ) { // 삭제하지 않은것만 처리
+//				
+//			}
+//			 
+//		}
+		
+	// 쪽지리스트
+	public List<MsgDto> getMsgList(String id, int request){		
+		
+		Map<String,Object>m = new HashMap<>();
+		m.put("id", id);
+		m.put("request", request);
+		// 1 받은거 3 보낸거 4 삭제한거
+		
+		return msgMapper.selectMsgList(m);
 	}
+		
 	
 	// 쪽지쓰기
 	
@@ -50,4 +69,21 @@ public class MsgService {
 		
 		return 1;
 	}
+	
+	
+	// 쪽지 상태 처리
+	public int modifyMsgState(Map<String,Object>m) {
+		msgMapper.updateMsgState(m);
+		return 1;
+	}
+	
+	
+	
+	// 자동삭제
+	@Scheduled(cron = "0 59 17 * * *")
+	void deleteMsg() {
+		int success = msgMapper.deleteMsgBySchedule();
+		log.debug(RED + "삭제처리완료 : " + success + RESET );
+	}
+	
 }
